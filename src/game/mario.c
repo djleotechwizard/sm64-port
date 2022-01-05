@@ -32,6 +32,9 @@
 #include "save_file.h"
 #include "sound_init.h"
 #include "rumble_init.h"
+#include "duktape.h"
+
+extern duk_context *duk_ctx;
 
 u32 unused80339F10;
 s8 filler80339F1C[20];
@@ -783,7 +786,12 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
 
     switch (action) {
         case ACT_DOUBLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 52.0f, 0.25f);
+            // set_mario_y_vel_based_on_fspeed(m, 52.0f, 0.25f);
+            duk_push_pointer(duk_ctx, m);
+            duk_eval_string(duk_ctx, "setMarioYVelBasedOnFspeed(52.0, 0.25)");
+            // int duk_int = (int) duk_get_int(duk_ctx, -1);
+            // printf("1+2=%d\n", duk_int);
+            
             m->forwardVel *= 0.8f;
             break;
 

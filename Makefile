@@ -102,17 +102,17 @@ ifeq      ($(VERSION),jp)
   VERSION_JP_US  ?= true
 else ifeq ($(VERSION),us)
   DEFINES   += VERSION_US=1
-  OPT_FLAGS := -g
+  OPT_FLAGS := -g 
   GRUCODE   ?= f3d_old
   VERSION_JP_US  ?= true
 else ifeq ($(VERSION),eu)
   DEFINES   += VERSION_EU=1
-  OPT_FLAGS := -O2
+  OPT_FLAGS := -g
   GRUCODE   ?= f3d_new
   VERSION_JP_US  ?= false
 else ifeq ($(VERSION),sh)
   DEFINES   += VERSION_SH=1
-  OPT_FLAGS := -O2
+  OPT_FLAGS := -g
   GRUCODE   ?= f3d_new
   VERSION_JP_US  ?= false
 endif
@@ -163,12 +163,12 @@ ifeq      ($(COMPILER),ido)
 else ifeq ($(COMPILER),gcc)
   NON_MATCHING := 1
   MIPSISET     := -mips3
-  OPT_FLAGS    := -O2
+  OPT_FLAGS    := -g
 endif
 
 # OPT_FLAGS - for ports
 ifeq ($(TARGET_N64),0)
-  OPT_FLAGS := -O2
+  OPT_FLAGS := -g
   ifeq ($(TARGET_WEB),1)
     OPT_FLAGS += -g4 --source-map-base http://localhost:8080/
   endif
@@ -433,7 +433,7 @@ CC_CHECK := gcc
 CC_CHECK_CFLAGS := -fsyntax-only -fsigned-char $(CC_CFLAGS) $(TARGET_CFLAGS) -std=gnu90 -Wall -Wextra -Wno-format-security -Wno-main -DNON_MATCHING -DAVOID_UB $(DEF_INC_CFLAGS)
 
 # C compiler options
-CFLAGS = -G 0 $(OPT_FLAGS) $(TARGET_CFLAGS) $(MIPSISET) $(DEF_INC_CFLAGS)
+CFLAGS = -G 0 $(OPT_FLAGS) $(TARGET_CFLAGS) $(MIPSISET) $(DEF_INC_CFLAGS) 
 ifeq ($(COMPILER),gcc)
   CFLAGS += -mno-shared -march=vr4300 -mfix4300 -mabi=32 -mhard-float -mdivide-breaks -fno-stack-protector -fno-common -fno-zero-initialized-in-bss -fno-PIC -mno-abicalls -fno-strict-aliasing -fno-inline-functions -ffreestanding -fwrapv -Wall -Wextra
 else
@@ -835,7 +835,7 @@ $(BUILD_DIR)/%.o: %.cpp
 	$(V)$(CXX) -c $(CFLAGS) -o $@ $<
 $(BUILD_DIR)/%.o: %.c
 	$(call print,Compiling:,$<,$@)
-	@$(CC_CHECK) $(CC_CHECK_CFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<
+	@$(CC_CHECK) $(CC_CHECK_CFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $< include/duktape.c -lm
 	$(V)$(CC) -c $(CFLAGS) -o $@ $<
 $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.c
 	$(call print,Compiling:,$<,$@)
@@ -850,11 +850,11 @@ ifeq ($(COMPILER),ido)
   $(BUILD_DIR)/src/goddard/%.o:      OPT_FLAGS := -g
   $(BUILD_DIR)/src/goddard/%.o:      MIPSISET := -mips1
   $(BUILD_DIR)/lib/src/%.o:          OPT_FLAGS :=
-  $(BUILD_DIR)/lib/src/math/%.o:     OPT_FLAGS := -O2
+  $(BUILD_DIR)/lib/src/math/%.o:     OPT_FLAGS := -g
   $(BUILD_DIR)/lib/src/math/ll%.o:   OPT_FLAGS :=
   $(BUILD_DIR)/lib/src/math/ll%.o:   MIPSISET := -mips3 -32
-  $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -O2
-  $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -O2
+  $(BUILD_DIR)/lib/src/ldiv.o:       OPT_FLAGS := -g
+  $(BUILD_DIR)/lib/src/string.o:     OPT_FLAGS := -g
   $(BUILD_DIR)/lib/src/gu%.o:        OPT_FLAGS := -O3
   $(BUILD_DIR)/lib/src/al%.o:        OPT_FLAGS := -O3
 
@@ -873,20 +873,20 @@ ifeq ($(COMPILER),ido)
 
     # For all audio files other than external.c and port_eu.c, put string literals
     # in .data. (In Shindou, the port_eu.c string literals also moved to .data.)
-    $(BUILD_DIR)/src/audio/%.o:        OPT_FLAGS := -O2 -use_readwrite_const
-    $(BUILD_DIR)/src/audio/port_eu.o:  OPT_FLAGS := -O2
+    $(BUILD_DIR)/src/audio/%.o:        OPT_FLAGS := -g -use_readwrite_const
+    $(BUILD_DIR)/src/audio/port_eu.o:  OPT_FLAGS := -g
   endif
   ifeq ($(VERSION_JP_US),true)
-    $(BUILD_DIR)/src/audio/%.o:        OPT_FLAGS := -O2 -Wo,-loopunroll,0
-    $(BUILD_DIR)/src/audio/load.o:     OPT_FLAGS := -O2 -Wo,-loopunroll,0 -framepointer
+    $(BUILD_DIR)/src/audio/%.o:        OPT_FLAGS := -g -Wo,-loopunroll,0
+    $(BUILD_DIR)/src/audio/load.o:     OPT_FLAGS := -g -Wo,-loopunroll,0 -framepointer
     # The source-to-source optimizer copt is enabled for audio. This makes it use
     # acpp, which needs -Wp,-+ to handle C++-style comments.
     # All other files than external.c should really use copt, but only a few have
     # been matched so far.
-    $(BUILD_DIR)/src/audio/effects.o:   OPT_FLAGS := -O2 -Wo,-loopunroll,0 -sopt,-inline=sequence_channel_process_sound,-scalaroptimize=1 -Wp,-+
-    $(BUILD_DIR)/src/audio/synthesis.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0 -sopt,-scalaroptimize=1 -Wp,-+
+    $(BUILD_DIR)/src/audio/effects.o:   OPT_FLAGS := -g -Wo,-loopunroll,0 -sopt,-inline=sequence_channel_process_sound,-scalaroptimize=1 -Wp,-+
+    $(BUILD_DIR)/src/audio/synthesis.o: OPT_FLAGS := -g -Wo,-loopunroll,0 -sopt,-scalaroptimize=1 -Wp,-+
   endif
-  $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0
+  $(BUILD_DIR)/src/audio/external.o: OPT_FLAGS := -g -Wo,-loopunroll,0
 
 # Add a target for build/eu/src/audio/*.copt to make it easier to see debug
 $(BUILD_DIR)/src/audio/%.acpp: src/audio/%.c
@@ -940,7 +940,7 @@ $(BUILD_DIR)/$(TARGET).objdump: $(ELF)
 
 else
 $(EXE): $(O_FILES) $(MIO0_FILES:.mio0=.o) $(ULTRA_O_FILES) $(GODDARD_O_FILES)
-	$(LD) -L $(BUILD_DIR) -o $@ $(O_FILES) $(ULTRA_O_FILES) $(GODDARD_O_FILES) $(LDFLAGS)
+	$(LD) -L $(BUILD_DIR) -o $@ $(O_FILES) $(ULTRA_O_FILES) $(GODDARD_O_FILES) $(LDFLAGS) include/duktape.c
 endif
 
 

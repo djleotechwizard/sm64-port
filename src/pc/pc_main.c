@@ -31,6 +31,7 @@
 #include "configfile.h"
 
 #include "compat.h"
+#include "duktape.h"
 
 #define CONFIG_FILE "sm64config.txt"
 
@@ -46,6 +47,9 @@ s8 gShowDebugText;
 static struct AudioAPI *audio_api;
 static struct GfxWindowManagerAPI *wm_api;
 static struct GfxRenderingAPI *rendering_api;
+
+static duk_context *duk_ctx_static;
+duk_context *duk_ctx;
 
 extern void gfx_run(Gfx *commands);
 extern void thread5_game_loop(void *arg);
@@ -140,6 +144,12 @@ static void on_fullscreen_changed(bool is_now_fullscreen) {
     configFullscreen = is_now_fullscreen;
 }
 
+static duk_ret_t native_set_mario_y_vel_based_on_fspeed(duk_context *ctx) {
+//   printf("%s\n", duk_to_string(ctx, 0));
+    MarioState *m = duk_to_pointer(ctx, 0);
+    return 0;  /* no return value (= undefined) */
+}
+
 void main_func(void) {
 #ifdef USE_SYSTEM_MALLOC
     main_pool_init();
@@ -207,6 +217,11 @@ void main_func(void) {
 
     audio_init();
     sound_init();
+
+    duk_ctx_static = duk_create_heap_default();
+    duk_ctx = duk_ctx_static;
+    duk_push_c_function(duk_ctx, native_set_mario_y_vel_based_on_fspeed, DUK_VARARGS);
+    duk_put_global_string(duk_ctx, "setMarioYVelBasedOnFspeed");
 
     thread5_game_loop(NULL);
 #ifdef TARGET_WEB
