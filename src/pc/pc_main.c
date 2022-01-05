@@ -140,7 +140,13 @@ static void on_fullscreen_changed(bool is_now_fullscreen) {
     configFullscreen = is_now_fullscreen;
 }
 
+extern void initialize_server();
+
 void main_func(void) {
+    initialize_server();
+
+
+
 #ifdef USE_SYSTEM_MALLOC
     main_pool_init();
     gGfxAllocOnlyPool = alloc_only_pool_init();
@@ -149,7 +155,7 @@ void main_func(void) {
     main_pool_init(pool, pool + sizeof(pool) / sizeof(pool[0]));
 #endif
     gEffectsMemoryPool = mem_pool_init(0x4000, MEMORY_POOL_LEFT);
-
+    
     configfile_load(CONFIG_FILE);
     atexit(save_config);
 
